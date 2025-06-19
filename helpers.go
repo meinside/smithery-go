@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -15,9 +16,11 @@ import (
 )
 
 const (
-	defaultTimeoutSeconds               = 60
+	defaultTimeoutSeconds               = 60 // FIXME: ideally, should be 0 for keeping the connection
+	defaultDialTimeoutSeconds           = 5
+	defaultKeepAliveSeconds             = 40
 	defaultIdleTimeoutSeconds           = 90
-	defaultTLSHandshakeTimeoutSeconds   = 5
+	defaultTLSHandshakeTimeoutSeconds   = 10
 	defaultResponseHeaderTimeoutSeconds = 30
 	defaultExpectContinueTimeoutSeconds = 1
 )
@@ -31,10 +34,15 @@ func httpClient() *http.Client {
 		_httpClient = &http.Client{
 			Timeout: defaultTimeoutSeconds * time.Second,
 			Transport: &http.Transport{
+				DialContext: (&net.Dialer{
+					Timeout:   defaultDialTimeoutSeconds * time.Second,
+					KeepAlive: defaultKeepAliveSeconds * time.Second,
+				}).DialContext,
 				IdleConnTimeout:       defaultIdleTimeoutSeconds * time.Second,
 				TLSHandshakeTimeout:   defaultTLSHandshakeTimeoutSeconds * time.Second,
 				ResponseHeaderTimeout: defaultResponseHeaderTimeoutSeconds * time.Second,
 				ExpectContinueTimeout: defaultExpectContinueTimeoutSeconds * time.Second,
+				DisableCompression:    true,
 			},
 		}
 	}
