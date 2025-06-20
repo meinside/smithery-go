@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -59,7 +60,10 @@ func getParams(params map[string]any) url.Values {
 }
 
 // helper function for generating a http request
-func (c *Client) httpRequest(ctx context.Context, method, url string) (req *http.Request, err error) {
+func (c *Client) httpRequest(
+	ctx context.Context,
+	method, url string,
+) (req *http.Request, err error) {
 	if req, err = http.NewRequestWithContext(ctx, method, url, nil); err == nil {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.apiToken))
 		req.Header.Add("Accept", "application/json")
@@ -69,7 +73,11 @@ func (c *Client) httpRequest(ctx context.Context, method, url string) (req *http
 }
 
 // helper function for generating a http get request
-func (c *Client) httpGetRequest(ctx context.Context, getURL string, params map[string]any) (req *http.Request, err error) {
+func (c *Client) httpGetRequest(
+	ctx context.Context,
+	getURL string,
+	params map[string]any,
+) (req *http.Request, err error) {
 	getParams := getParams(params)
 
 	var u *url.URL
@@ -113,6 +121,15 @@ func (c *Client) readHTTPResponse(
 			body, _ = io.ReadAll(resp.Body)
 			err = fmt.Errorf("http error %d (%s)", resp.StatusCode, string(body))
 		}
+	}
+	return
+}
+
+// redact given `original` string with given `redactees`
+func redact(original string, redactees ...string) (redacted string) {
+	redacted = original
+	for _, redactee := range redactees {
+		redacted = strings.ReplaceAll(redacted, redactee, "REDACTED")
 	}
 	return
 }

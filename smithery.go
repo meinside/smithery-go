@@ -68,6 +68,15 @@ func (c *Client) ListServers(
 		}
 	}
 
+	// redact error message
+	err = fmt.Errorf(
+		"%s",
+		redact(
+			err.Error(),
+			c.apiToken,
+		),
+	)
+
 	return ResponseServers{}, err
 }
 
@@ -118,6 +127,15 @@ func (c *Client) GetServer(
 			}
 		}
 	}
+
+	// redact error message
+	err = fmt.Errorf(
+		"%s",
+		redact(
+			err.Error(),
+			c.apiToken,
+		),
+	)
 
 	return ResponseServer{}, err
 }
@@ -201,6 +219,15 @@ func (c *Client) connect(ctx context.Context, url *url.URL) (closer *mcpc.Client
 			}
 		}
 	}
+
+	// redact error message
+	err = fmt.Errorf(
+		"%s",
+		redact(
+			err.Error(),
+			c.apiToken,
+		),
+	)
 
 	return nil, err
 }
