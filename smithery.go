@@ -13,9 +13,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	mcpc "github.com/mark3labs/mcp-go/client"
-	"github.com/mark3labs/mcp-go/client/transport"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/meinside/version-go"
 )
@@ -148,7 +146,7 @@ func (c *Client) ConnectWithProfileID(
 	ctx context.Context,
 	profileID string,
 	serverName string,
-) (closer *mcpc.Client, err error) {
+) (closer *mcp.ClientSession, err error) {
 	var u *url.URL
 	if u, err = url.Parse(fmt.Sprintf(
 		`https://server.smithery.ai/%[1]s/mcp`,
@@ -173,7 +171,7 @@ func (c *Client) ConnectManually(
 	ctx context.Context,
 	serverURL string,
 	config map[string]any,
-) (closer *mcpc.Client, err error) {
+) (closer *mcp.ClientSession, err error) {
 	var conf []byte
 	if conf, err = json.Marshal(config); err == nil {
 		var u *url.URL
@@ -191,33 +189,25 @@ func (c *Client) ConnectManually(
 }
 
 // connect to server, start, initialize, and return the client
-func (c *Client) connect(ctx context.Context, url *url.URL) (closer *mcpc.Client, err error) {
-	var streamable *transport.StreamableHTTP
-	if streamable, err = transport.NewStreamableHTTP(
+func (c *Client) connect(
+	ctx context.Context,
+	url *url.URL,
+) (closer *mcp.ClientSession, err error) {
+	streamable := mcp.NewStreamableClientTransport(
 		url.String(),
-		transport.WithHTTPBasicClient(httpClient()),
-	); err == nil {
-		closer = mcpc.NewClient(
-			streamable,
-			mcpc.WithClientCapabilities(mcp.ClientCapabilities{}),
-		)
+		&mcp.StreamableClientTransportOptions{
+			HTTPClient: httpClient(),
+		},
+	)
 
-		if err = closer.Start(ctx); err == nil {
-			var initialized *mcp.InitializeResult
-			if initialized, err = closer.Initialize(ctx, mcp.InitializeRequest{
-				Params: mcp.InitializeParams{
-					ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
-					ClientInfo: mcp.Implementation{
-						Name:    clientName,
-						Version: version.Build(version.OS | version.Architecture),
-					},
-				},
-			}); err == nil {
-				c.verbose(">>> initialized server: %s", prettify(initialized))
+	client := mcp.NewClient(
+		clientName,
+		version.Build(version.OS|version.Architecture),
+		&mcp.ClientOptions{},
+	)
 
-				return closer, nil
-			}
-		}
+	if closer, err = client.Connect(ctx, streamable); err == nil {
+		return closer, nil
 	}
 
 	// redact error message
