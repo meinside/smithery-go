@@ -1,6 +1,6 @@
 # smithery-go
 
-A go library for using [smithery](https://smithery.ai/) APIs, built with [mark3labs/mcp-go](https://github.com/mark3labs/mcp-go).
+A go library for using [smithery](https://smithery.ai/) APIs, built with [MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk).
 
 ## Usage
 
@@ -11,7 +11,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/meinside/smithery-go"
 )
@@ -41,20 +41,21 @@ func main() {
 	}
 
 	// connect,
-	if conn, err := client.ConnectWithProfileID(
+	if session, err := client.ConnectWithProfileID(
 		context.TODO(),
 		profileID,
 		qualifiedName,
 	); err == nil {
-		defer conn.Close()	// NOTE: do not forget to close it after use
+		// NOTE: do not forget to close it after use
+		defer session.Close()
 
 		// do various things with the connection,
 		// eg. get tools from the connection, generate with your LLM, and call the corresponding tools
 
 		// list tools,
-		if tools, err := conn.ListTools(
+		if tools, err := session.ListTools(
 			context.TODO(),
-			mcp.ListToolsRequest{},
+			&mcp.ListToolsParams{},
 		); err == nil {
 			fmt.Printf("> tools = %+v\n", tools)
 
@@ -65,16 +66,11 @@ func main() {
 			}
 
 			// and call the corresponding tool with your function arguments
-			if result, err := conn.CallTool(
+			if result, err := session.CallTool(
 				context.TODO(),
-				mcp.CallToolRequest{
-					Request: mcp.Request{
-						Method: "tools/call",
-					},
-					Params: mcp.CallToolParams{
-						Name:      fnNameFromYourLLM,
-						Arguments: fnArgsFromYourLLM,
-					},
+				&mcp.CallToolParams{
+					Name:      fnNameFromYourLLM,
+					Arguments: fnArgsFromYourLLM,
 				},
 			); err == nil {
 				fmt.Printf("> call tool result: %+v\n", result)
