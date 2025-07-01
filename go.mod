@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/jwalton/go-supportscolor v1.2.0
 	github.com/meinside/version-go v0.0.3
-	github.com/modelcontextprotocol/go-sdk v0.0.0-20250630184440-2facfc6ffe0b
+	github.com/modelcontextprotocol/go-sdk v0.1.0
 )
 
 require (
