@@ -201,8 +201,10 @@ func (c *Client) connect(
 	)
 
 	client := mcp.NewClient(
-		clientName,
-		version.Build(version.OS|version.Architecture),
+		&mcp.Implementation{
+			Name:    clientName,
+			Version: version.Build(version.OS | version.Architecture),
+		},
 		&mcp.ClientOptions{},
 	)
 

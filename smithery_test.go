@@ -65,7 +65,8 @@ func TestConnections(t *testing.T) {
 	); err != nil {
 		t.Errorf("failed to connect to server with profile id: %s", err)
 	} else {
-		defer cs.Close() // NOTE: should be closed manually after use
+		// NOTE: should be closed manually after use
+		defer func() { _ = cs.Close() }()
 
 		// list tools,
 		if tools, err := cs.ListTools(
@@ -104,7 +105,8 @@ func TestConnections(t *testing.T) {
 	); err != nil {
 		t.Errorf("failed to connect to server with config: %s", err)
 	} else {
-		defer cs.Close() // NOTE: should be closed manually after use
+		// NOTE: should be closed manually after use
+		defer func() { _ = cs.Close() }()
 
 		// list tools,
 		if tools, err := cs.ListTools(
