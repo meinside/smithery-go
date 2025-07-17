@@ -80,11 +80,9 @@ func TestConnections(t *testing.T) {
 			// call tool,
 			if result, err := cs.CallTool(
 				context.TODO(),
-				&mcp.CallToolParams{
-					Name: "web_search_exa",
-					Arguments: map[string]any{
-						"query": "mcp and smithery",
-					},
+				"web_search_exa",
+				map[string]any{
+					"query": "mcp and smithery",
 				},
 			); err != nil {
 				t.Errorf("failed to call tool: %s", err)
@@ -120,11 +118,9 @@ func TestConnections(t *testing.T) {
 			// call tool,
 			if result, err := cs.CallTool(
 				context.TODO(),
-				&mcp.CallToolParams{
-					Name: "search_image",
-					Arguments: map[string]any{
-						"query": "shoebill",
-					},
+				"search_image",
+				map[string]any{
+					"query": "shoebill",
 				},
 			); err != nil {
 				t.Errorf("failed to call tool: %s", err)

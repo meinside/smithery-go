@@ -138,15 +138,69 @@ func (c *Client) GetServer(
 	return ResponseServer{}, err
 }
 
+// ClientSession struct for keeping client session
+type ClientSession struct {
+	client *Client
+
+	closer *mcp.ClientSession
+}
+
+// ListTools lists tools.
+func (cs *ClientSession) ListTools(
+	ctx context.Context,
+	params *mcp.ListToolsParams,
+) (result *mcp.ListToolsResult, err error) {
+	if result, err = cs.closer.ListTools(ctx, params); err != nil {
+		// redact error message
+		err = fmt.Errorf(
+			"%s",
+			redact(
+				err.Error(),
+				cs.client.apiToken,
+			),
+		)
+	}
+
+	return result, err
+}
+
+// CallTool calls tool with given `fnName` and `fnArgs`.
+func (cs *ClientSession) CallTool(
+	ctx context.Context,
+	fnName string,
+	fnArgs map[string]any,
+) (result *mcp.CallToolResult, err error) {
+	if result, err = cs.closer.CallTool(ctx, &mcp.CallToolParams{
+		Name:      fnName,
+		Arguments: fnArgs,
+	}); err != nil {
+		// redact error message
+		err = fmt.Errorf(
+			"%s",
+			redact(
+				err.Error(),
+				cs.client.apiToken,
+			),
+		)
+	}
+
+	return result, err
+}
+
+// Close closes the client session.
+func (cs *ClientSession) Close() error {
+	return cs.closer.Close()
+}
+
 // ConnectWithProfileID connects to server with given `profileID` and `serverName`.
-// Returned client(`closer`) should be closed manually after use.
+// Returned `connection` should be closed manually after use.
 //
 // https://smithery.ai/docs/use/connect#using-a-profile-recommended
 func (c *Client) ConnectWithProfileID(
 	ctx context.Context,
 	profileID string,
 	serverName string,
-) (closer *mcp.ClientSession, err error) {
+) (connection *ClientSession, err error) {
 	var u *url.URL
 	if u, err = url.Parse(fmt.Sprintf(
 		`https://server.smithery.ai/%[1]s/mcp`,
@@ -164,14 +218,14 @@ func (c *Client) ConnectWithProfileID(
 }
 
 // ConnectManually connects to server with given `url` and `config`.
-// Returned client(`closer`) should be closed manually after use.
+// Returned `connection` should be closed manually after use.
 //
 // https://smithery.ai/docs/use/connect#manual-configuration
 func (c *Client) ConnectManually(
 	ctx context.Context,
 	serverURL string,
 	config map[string]any,
-) (closer *mcp.ClientSession, err error) {
+) (connection *ClientSession, err error) {
 	var conf []byte
 	if conf, err = json.Marshal(config); err == nil {
 		var u *url.URL
@@ -192,7 +246,7 @@ func (c *Client) ConnectManually(
 func (c *Client) connect(
 	ctx context.Context,
 	url *url.URL,
-) (closer *mcp.ClientSession, err error) {
+) (connection *ClientSession, err error) {
 	streamable := mcp.NewStreamableClientTransport(
 		url.String(),
 		&mcp.StreamableClientTransportOptions{
@@ -208,8 +262,12 @@ func (c *Client) connect(
 		&mcp.ClientOptions{},
 	)
 
+	var closer *mcp.ClientSession
 	if closer, err = client.Connect(ctx, streamable); err == nil {
-		return closer, nil
+		return &ClientSession{
+			client: c,
+			closer: closer,
+		}, nil
 	}
 
 	// redact error message
