@@ -17,13 +17,13 @@ import (
 )
 
 const (
-	defaultTimeoutSeconds               = 60 // FIXME: ideally, should be 0 for keeping the connection
-	defaultDialTimeoutSeconds           = 5
-	defaultKeepAliveSeconds             = 40
-	defaultIdleTimeoutSeconds           = 90
-	defaultTLSHandshakeTimeoutSeconds   = 10
-	defaultResponseHeaderTimeoutSeconds = 30
-	defaultExpectContinueTimeoutSeconds = 1
+	defaultTimeoutSeconds               = 120 // FIXME: ideally, should be 0 for keeping the connection
+	defaultDialTimeoutSeconds           = 10
+	defaultKeepAliveSeconds             = 60
+	defaultIdleTimeoutSeconds           = 180
+	defaultTLSHandshakeTimeoutSeconds   = 20
+	defaultResponseHeaderTimeoutSeconds = 60
+	defaultExpectContinueTimeoutSeconds = 15
 )
 
 // for reusing http client
